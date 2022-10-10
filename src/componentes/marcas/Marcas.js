@@ -1,24 +1,25 @@
 import dayjs from 'dayjs'
 import React, { useEffect, useState } from 'react'
-import { crearMarca, obtenerMarcas } from '../../services/MarcaService'
+import { borrarMarcaPorID, crearMarca, editarMarcaPorID, obtenerMarcas } from '../../services/MarcaService'
 import HeaderTable from '../ui/HeaderTable'
 import Modal from '../ui/Modal'
 
 export default function Marcas() {
-
   const [Marcas, setMarcas] = useState([])
   const [loading, setLoading] = useState(false)
   const [query, setQuery] = useState(true)
   const [error, setError] = useState(false)
   const [Marca, setMarca] = useState({
-    nombre: ''
+    nombre: '',
+    Marca: true
   })
   const [errorSend, setErrorSend] = useState({
     status: false,
     msg: ''
   })
+  //const [tipoId, setTipoId] = useState('')
 
-  const listMarcas = async () => {
+  const listMarcas= async () => {
     setLoading(true)
     try{
       setError(false)
@@ -51,10 +52,6 @@ export default function Marcas() {
       listMarcas()
     }catch(e){
       const {status, data} = e.response;
-      /*if(status == 400){
-        console.log(data.msg)
-        
-      }*/
       setErrorSend({status: true, msg: data.msg})
       console.log(e)
       setLoading(false)
@@ -69,8 +66,116 @@ export default function Marcas() {
     })
   }
 
+  const borrarMarca = async (e) => {
+    setLoading(true)
+    try{
+      setError(false)
+      const id = e.target.id
+      console.log(id)
+      const res = await borrarMarcaPorID(id)
+      console.log(res)
+      listMarcas();
+      setLoading(false)
+    }catch(e){
+      console.log(e)
+      setError(true)
+      setLoading(false)
+    }
+  }
+
+  const editarMarca = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    try{
+      setError(false)
+      const resp = await editarMarcaPorID(Marca._id, Marca);
+      console.log(resp)
+      resetMarca()
+      listMarcas()
+    }catch(e){
+      setLoading(false)
+      console.log(e)
+      setError(true)
+    }
+
+  }
+
+  const setMarcaPorId = (e) => {
+    console.log(e.target.id)
+    const MarcasFilter = Marcas.filter(t => t._id == e.target.id);
+    const est = MarcasFilter[0];
+    console.log(est)
+    setMarca(est)
+  }
+
+  const resetMarca =() => {
+    setMarca({
+      nombre: '',
+      Marca: true
+    })
+  }
+
   return (
       <div>
+        <div className="modal fade" id="exampleModal2" tabIndex={-1} aria-labelledby="exampleModal2Label" aria-hidden="true">
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title" id="exampleModal2Label">Editar Marca</h5>
+                <button 
+                  type="button" 
+                  className="btn-close" 
+                  data-bs-dismiss="modal" 
+                  aria-label="Close"
+                  onClick={resetMarca}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <form onSubmit={editarMarca}>
+                  <div className="mb-3">
+                    <label for="recipient-name" className="col-form-label">Nombre:</label>
+                    <input 
+                      type="text" 
+                      className="form-control" 
+                      id="recipient-name"
+                      onChange={handleChange}
+                      value={Marca.nombre}
+                      name="nombre"
+                    />
+                    <select 
+                      class="form-select" 
+                      aria-label="Default select example"
+                      name="Marca"
+                      value={Marca.Marca}
+                      onChange={handleChange}
+                    >
+                      <option value={false}>Inactivo</option>
+                      <option value={true}>Activo</option>
+                    </select>
+                  </div>
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary" 
+                    data-bs-dismiss="modal"
+                    onClick={resetMarca}
+                  >
+                    Cerrar
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="btn btn-primary" 
+                    disabled={Marca.nombre.length <= 0}
+                    data-bs-dismiss="modal"
+                  >
+                    Enviar
+                  </button>
+                </form>
+              </div>
+              <div className="modal-footer">
+              </div>
+            </div>
+          </div>
+        </div>
         <Modal 
           titulo={'Marca'}
           guardar={guardarMarca}
@@ -121,15 +226,31 @@ export default function Marcas() {
           {
             Marcas.map((Marca,index) => {
               return (
-                <tr>
+              <tr key={Marca._id}>
                 <th scope="row">{index + 1}</th>
                 <td>{Marca.nombre}</td>
-                <td>{Marca.estado ? 'Activo': 'Inactivo'}</td>
+                <td>{Marca.Marca ? 'Activo': 'Inactivo'}</td>
                 <td>{dayjs(Marca.fechaCreacion).format('YYYY-MM-DD')}</td>
                 <td>{dayjs(Marca.fechaActualizacion).format('YYYY-MM-DD')}</td>
                 <td>
-                  <button type="button" className="btn btn-success">Editar</button>
-                  <button type="button" className="btn btn-danger">Borrar</button>
+                  <button 
+                    id={Marca._id}
+                    type="button" 
+                    className="btn btn-success"
+                    data-bs-toggle="modal" 
+                    data-bs-target="#exampleModal2"
+                    onClick={setMarcaPorId}
+                  >
+                    Editar
+                  </button>
+                  <button 
+                    id={Marca._id}
+                    type="button" 
+                    className="btn btn-danger"
+                    onClick={borrarMarca}
+                  >
+                    Borrar
+                  </button>
                 </td>
               </tr>
               )
@@ -140,4 +261,3 @@ export default function Marcas() {
       </div>
   )
 }
-

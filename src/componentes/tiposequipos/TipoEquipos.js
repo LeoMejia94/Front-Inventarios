@@ -1,6 +1,6 @@
 import dayjs from 'dayjs'
 import React, { useEffect, useState } from 'react'
-import { crearTipoEquipo, obtenerTiposEquipos } from '../../services/TipoEquipoService'
+import { borrarTipoEquipoPorID, crearTipoEquipo, editarTipoEquipoPorID, obtenerTiposEquipos } from '../../services/TipoEquipoService'
 import HeaderTable from '../ui/HeaderTable'
 import Modal from '../ui/Modal'
 
@@ -11,12 +11,14 @@ export default function TipoEquipos() {
   const [query, setQuery] = useState(true)
   const [error, setError] = useState(false)
   const [tipoEquipo, setTipoEquipo] = useState({
-    nombre: ''
+    nombre: '',
+    estado: true
   })
   const [errorSend, setErrorSend] = useState({
     status: false,
     msg: ''
   })
+  //const [tipoId, setTipoId] = useState('')
 
   const listTipoEquipos = async () => {
     setLoading(true)
@@ -69,8 +71,116 @@ export default function TipoEquipos() {
     })
   }
 
+  const borrarTipoEquipo = async (e) => {
+    setLoading(true)
+    try{
+      setError(false)
+      const id = e.target.id
+      console.log(id)
+      const res = await borrarTipoEquipoPorID(id)
+      console.log(res)
+      listTipoEquipos();
+      setLoading(false)
+    }catch(e){
+      console.log(e)
+      setError(true)
+      setLoading(false)
+    }
+  }
+
+  const editarTipoEquipo = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    try{
+      setError(false)
+      const resp = await editarTipoEquipoPorID(tipoEquipo._id, tipoEquipo);
+      console.log(resp)
+      resetTipoEquipo()
+      listTipoEquipos()
+    }catch(e){
+      setLoading(false)
+      console.log(e)
+      setError(true)
+    }
+
+  }
+
+  const setTipoPorId = (e) => {
+    console.log(e.target.id)
+    const tiposFilter = tipoEquipos.filter(t => t._id == e.target.id);
+    const tipo = tiposFilter[0];
+    console.log(tipo)
+    setTipoEquipo(tipo)
+  }
+
+  const resetTipoEquipo =() => {
+    setTipoEquipo({
+      nombre: '',
+      estado: true
+    })
+  }
+
   return (
       <div>
+        <div className="modal fade" id="exampleModal2" tabIndex={-1} aria-labelledby="exampleModal2Label" aria-hidden="true">
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title" id="exampleModal2Label">Editar TipoEquipo</h5>
+                <button 
+                  type="button" 
+                  className="btn-close" 
+                  data-bs-dismiss="modal" 
+                  aria-label="Close"
+                  onClick={resetTipoEquipo}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <form onSubmit={editarTipoEquipo}>
+                  <div className="mb-3">
+                    <label for="recipient-name" className="col-form-label">Nombre:</label>
+                    <input 
+                      type="text" 
+                      className="form-control" 
+                      id="recipient-name"
+                      onChange={handleChange}
+                      value={tipoEquipo.nombre}
+                      name="nombre"
+                    />
+                    <select 
+                      class="form-select" 
+                      aria-label="Default select example"
+                      name="estado"
+                      value={tipoEquipo.estado}
+                      onChange={handleChange}
+                    >
+                      <option value={false}>Inactivo</option>
+                      <option value={true}>Activo</option>
+                    </select>
+                  </div>
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary" 
+                    data-bs-dismiss="modal"
+                    onClick={resetTipoEquipo}
+                  >
+                    Cerrar
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="btn btn-primary" 
+                    disabled={tipoEquipo.nombre.length <= 0}
+                    data-bs-dismiss="modal"
+                  >
+                    Enviar
+                  </button>
+                </form>
+              </div>
+              <div className="modal-footer">
+              </div>
+            </div>
+          </div>
+        </div>
         <Modal 
           titulo={'Tipo de Equipo'}
           guardar={guardarTipoEquipo}
@@ -121,15 +231,31 @@ export default function TipoEquipos() {
           {
             tipoEquipos.map((tipoEquipo,index) => {
               return (
-                <tr>
+              <tr key={tipoEquipo._id}>
                 <th scope="row">{index + 1}</th>
                 <td>{tipoEquipo.nombre}</td>
                 <td>{tipoEquipo.estado ? 'Activo': 'Inactivo'}</td>
                 <td>{dayjs(tipoEquipo.fechaCreacion).format('YYYY-MM-DD')}</td>
                 <td>{dayjs(tipoEquipo.fechaActualizacion).format('YYYY-MM-DD')}</td>
                 <td>
-                  <button type="button" className="btn btn-success">Editar</button>
-                  <button type="button" className="btn btn-danger">Borrar</button>
+                  <button 
+                    id={tipoEquipo._id}
+                    type="button" 
+                    className="btn btn-success"
+                    data-bs-toggle="modal" 
+                    data-bs-target="#exampleModal2"
+                    onClick={setTipoPorId}
+                  >
+                    Editar
+                  </button>
+                  <button 
+                    id={tipoEquipo._id}
+                    type="button" 
+                    className="btn btn-danger"
+                    onClick={borrarTipoEquipo}
+                  >
+                    Borrar
+                  </button>
                 </td>
               </tr>
               )
