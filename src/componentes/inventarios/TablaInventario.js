@@ -5,8 +5,7 @@ const TablaInventario = (params) => {
   const [photo, setPhoto] = useState(logo);
 
  function formatearFecha(fecha){
-        // lo formatea asi porque con toLocaleDateString me deja la fecha en un dia antes... 
-        //Tal vez porque queda registrada en la base de datos con 0 horas y 0 minutos....
+
         let date= fecha.split("-")
         let dia=date[2].split("T")
         let formatFecha=date[0]+"-"+date[1]+"-"+dia[0]
