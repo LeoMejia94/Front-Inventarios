@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from 'react'
-import { obtenerTodos, guardar, editarPorId, borrarPorId, subirFoto } from '../../services/InventarioService'
-import HeaderTable from '../ui/HeaderTable'
-import Modal from '../ui/Modal'
+import React, {useState, useEffect } from 'react'
+import { obtenerTodos, guardar, editarPorId, borrarPorId, subirFoto } from '../../services/InventarioService';
+import TablaInventario from './TablaInventario';
+import Cargando from '../ui/Cargando';
+import DialogoAgregarInventario from './DialogoAgregarInventario';
+import DialogoEliminar from '../ui/DialogoEliminar';
 
 const Inventario = (params) => {
 
@@ -79,7 +81,7 @@ const [file, setFile] = useState([]);
     }).catch(e => {
       console.log(e);
       let error=e.response.data.msj
-      if(error=='Ya existe serial o modelo!' || error==('Ya existe serial!')){
+      if(error=='Ya existe serial o modelo!' || error===('Ya existe serial!')){
         alert(error)
       }
       changeError(true);
@@ -185,7 +187,7 @@ if(inventarios.length>0){
             <i className="fa-solid fa-plus"></i>
             Agregar
         </button>
-        <HeaderTable
+        <TablaInventario
             datos={inventarios}
             estados={params.estados}
             marcas={params.marcas} 
@@ -196,7 +198,7 @@ if(inventarios.length>0){
         />  
         
         
-        <Modal
+        <DialogoAgregarInventario 
             titulo='Nuevo equipo'
             item={item}
             display={display}
@@ -220,7 +222,7 @@ if(inventarios.length>0){
                 style={{display:'none'}}
             >
             </button>
-                <Modal
+                <DialogoEliminar
                 borrar={borrar}
                 titulo={'el equipo'}
             />
@@ -228,7 +230,7 @@ if(inventarios.length>0){
  )   
 }else{
     return(
-        <Modal />
+        <Cargando />
     )
 }
   
